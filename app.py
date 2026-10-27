@@ -15,6 +15,8 @@ from src import ai_content, config
 from src import visualization as viz
 from src.analysis_cache import load_or_compute, make_cache_key
 from src.analysis_runner import run_full_analysis
+from src.chart_builders import data_understanding_charts, model_charts
+from src.precomputed import file_sha256, load_snapshot_file, snapshot_result
 from src.data_loader import (
     DataLoadError,
     load_csv_from_url,
@@ -35,6 +37,7 @@ from src.feature_selection import (
     METHOD_PEARSON,
     METHOD_RFE,
     METHOD_SFS,
+    METHOD_SHORT,
     METHODS,
     display_name,
 )
@@ -63,14 +66,6 @@ SRC_STARTUP = "Startup 50 範例資料集"
 PROBLEM_SOURCES = {
     P1: [SRC_LOCAL, SRC_UPLOAD, SRC_URL],
     P2: [SRC_URL, SRC_UPLOAD, SRC_STARTUP],
-}
-
-METHOD_SHORT = {
-    METHOD_PEARSON: "Pearson",
-    METHOD_KBEST: "SelectKBest",
-    METHOD_RFE: "RFE",
-    METHOD_SFS: "SFS",
-    METHOD_LASSO: "Lasso",
 }
 
 TAB_NAMES = [
@@ -111,8 +106,32 @@ def cached_upload(content: bytes, file_name: str) -> pd.DataFrame:
     return load_uploaded_csv(content, file_name)
 
 
+@st.cache_data(show_spinner=False)
+def cached_data_id(path: str, mtime: float) -> str:
+    """預設本機資料的 SHA-256 指紋；讀取失敗時回傳空字串（停用快照）。"""
+    try:
+        return file_sha256(path)
+    except OSError:
+        return ""
+
+
+@st.cache_data(show_spinner=False)
+def cached_charts_da(df: pd.DataFrame, target: str, data_id: str) -> dict[str, bytes]:
+    snap = load_snapshot_file()
+    if snap is not None and data_id and snap["data_id"] == data_id and snap["target"] == target:
+        return snap["charts_da"]
+    return data_understanding_charts(df, target)
+
+
 @st.cache_data(show_spinner="正在執行分析，完成後會快取以加速下次開啟…", max_entries=8)
-def cached_analysis(df: pd.DataFrame, target: str, features: tuple, settings: dict) -> dict:
+def cached_analysis(df: pd.DataFrame, target: str, features: tuple, settings: dict, data_id: str) -> dict:
+    # 優先讀取預先建置的快照（與目前資料與設定相符時），避免首次開啟等待分析
+    snap = load_snapshot_file()
+    restored = snapshot_result(snap, df, target, list(features), settings, data_id)
+    if restored is not None:
+        restored["charts"] = {**snap["charts_da"], **restored["charts"]}
+        return restored
+
     def compute() -> dict:
         res = run_full_analysis(df, target, list(features), settings)
         res["charts"] = {**data_understanding_charts(df, target), **model_charts(res)}
@@ -159,49 +178,6 @@ def default_target_index(problem: str, columns: list[str], raw: pd.DataFrame) ->
 # ---------------------------------------------------------------------------
 # 圖表
 # ---------------------------------------------------------------------------
-def data_understanding_charts(cleaned: pd.DataFrame, target: str) -> dict[str, bytes]:
-    charts: dict[str, bytes] = {}
-    corr = correlation_matrix(cleaned)
-    if not corr.empty:
-        charts["相關係數熱圖"] = fig_to_png_bytes(viz.correlation_heatmap(corr))
-    charts["目標變數分布"] = fig_to_png_bytes(viz.target_distribution(cleaned[target], target))
-    numeric_feats = [c for c in cleaned.columns if c != target and is_numeric_dtype(cleaned[c])]
-    fig = viz.feature_histograms(cleaned, numeric_feats)
-    if fig is not None:
-        charts["數值特徵分布"] = fig_to_png_bytes(fig)
-    return charts
-
-
-def model_charts(result: dict) -> dict[str, bytes]:
-    charts: dict[str, bytes] = {}
-    for entry in result["method_results"]:
-        if entry["detail"] is None or entry["method"] == METHOD_SFS:
-            continue
-        fig = viz.selection_bar_chart(entry["detail"], entry["score_label"], entry["method"])
-        if fig is not None:
-            charts[f"特徵分數_{METHOD_SHORT[entry['method']]}"] = fig_to_png_bytes(fig)
-
-    fig = viz.comparison_bar_chart(result["comparison_table"])
-    if fig is not None:
-        charts["五種方法指標比較"] = fig_to_png_bytes(fig)
-
-    pred = result["predictions"]
-    charts["實際值與預測值"] = fig_to_png_bytes(
-        viz.actual_vs_predicted(pred["實際值"].to_numpy(), pred["預測值"].to_numpy())
-    )
-    charts["95%預測區間"] = fig_to_png_bytes(viz.prediction_interval_plot(pred["實際值"].to_numpy(), pred))
-
-    a = result["assumptions"]
-    charts["殘差對擬合值"] = fig_to_png_bytes(viz.residuals_vs_fitted(a["fitted"], a["residuals"]))
-    charts["尺度位置圖"] = fig_to_png_bytes(viz.scale_location(a["fitted"], a["residuals"]))
-    charts["殘差直方圖"] = fig_to_png_bytes(viz.residual_histogram(a["residuals"]))
-    charts["殘差QQ圖"] = fig_to_png_bytes(viz.qq_plot(a["residuals"]))
-    fig = viz.vif_bar_chart(a["vif_table"], config.VIF_THRESHOLD)
-    if fig is not None:
-        charts["VIF長條圖"] = fig_to_png_bytes(fig)
-    return charts
-
-
 def show_chart(charts: dict[str, bytes], name: str) -> None:
     if name in charts:
         st.image(charts[name], caption=name)
@@ -756,6 +732,11 @@ if cleaned is not None and settings is not None and features:
         tuple(sorted(settings.items())),
     )
 
+# 預設本機資料的指紋，用於比對預先建置的快照
+data_id = ""
+if problem == P1 and source == SRC_LOCAL:
+    data_id = cached_data_id(str(config.CAR_LOCAL_CSV_PATH), local_csv_mtime())
+
 auto_run = signature is not None and not st.session_state.get("auto_run_done", False)
 if auto_run:
     st.session_state["auto_run_done"] = True
@@ -763,7 +744,7 @@ if auto_run:
 if (run_clicked or auto_run) and signature is not None:
     try:
         with st.spinner("正在執行分析；若使用 SFS 且特徵較多，可能需要一些時間…"):
-            result = cached_analysis(cleaned, target, tuple(features), settings)
+            result = cached_analysis(cleaned, target, tuple(features), settings, data_id)
         st.session_state["results"] = {
             "problem": problem,
             "signature": signature,
@@ -801,7 +782,7 @@ else:
     charts = {}
 
 charts_da = (
-    data_understanding_charts(cleaned, target)
+    cached_charts_da(cleaned, target, data_id)
     if cleaned is not None and target is not None
     else {}
 )

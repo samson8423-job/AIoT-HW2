@@ -54,6 +54,18 @@ python -m streamlit run app.py
 
 在 VS Code 中也可開啟終端機，於專案資料夾執行上述指令。
 
+### 預先建置的預設分析結果
+
+網站首次開啟時會直接讀取 `precomputed/default_analysis.json`（預設汽車資料與預設設定的分析結果與圖表），不必重新分析。此檔已納入版本控制。
+
+若修改 `data/data.csv`、目標變數、特徵或預設設定，請重新產生快照：
+
+```bash
+python scripts/build_default_snapshot.py
+```
+
+快照與目前的資料指紋或設定不符時，網站會自動改為即時分析。
+
 ## 如何使用自訂 CSV URL
 
 1. 在頁面上方選擇 Problem。

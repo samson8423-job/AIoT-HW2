@@ -33,6 +33,15 @@ METHOD_DESCRIPTIONS = {
 }
 
 
+METHOD_SHORT = {
+    METHOD_PEARSON: "Pearson",
+    METHOD_KBEST: "SelectKBest",
+    METHOD_RFE: "RFE",
+    METHOD_SFS: "SFS",
+    METHOD_LASSO: "Lasso",
+}
+
+
 def _pearson_with_target(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     """逐欄計算 Pearson 相關係數；標準差為零的欄位回傳 0。"""
     X = np.asarray(X, dtype=float)
