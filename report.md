@@ -134,6 +134,7 @@ OLS 與 Sklearn 預測值的最大絕對差異：0.00000000
 - Car Price Dataset（CooperUnion）（資料集頁面）：https://www.kaggle.com/datasets/CooperUnion/cardataset
 - scikit-learn：Feature selection（統計文件）：https://scikit-learn.org/stable/modules/feature_selection.html
 - statsmodels：Linear Regression Models（統計文件）：https://www.statsmodels.org/stable/regression.html
+- ChatGPT 對話記錄（對話紀錄）：[data/ChatGPT Dialogue Content.pdf](data/ChatGPT%20Dialogue%20Content.pdf)
 
 ## 11. 研究限制與結論
 
