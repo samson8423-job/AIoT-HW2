@@ -1,0 +1,6 @@
+# 虛擬環境、Python 快取與本機分析快取
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+cache/
