@@ -6,10 +6,20 @@
 ![Demo 畫面 1](data/HW2-demo1.png)
 ![Demo 畫面 2](data/HW2-demo2.png)
 
-以 Streamlit 建置的多元線性迴歸分析網站，流程遵循 CRISP-DM 六階段，包含兩個 Problem：
+以 Streamlit 建置的多元線性迴歸分析網站，流程遵循 CRISP-DM 六階段。使用者不需撰寫程式，即可在瀏覽器中完成資料探索、特徵選擇、模型評估、假設檢驗與單筆預測，並下載完整報告。
 
 - **Problem 1：汽車價格預測**：Kaggle 公開資料集 Car Features and MSRP（CooperUnion/cardataset），預測目標為 MSRP。
 - **Problem 2：自訂資料集迴歸分析**：可輸入公開 CSV 網址、上傳 CSV，或使用 Startup 50 範例資料集（預設目標為 Profit）。
+
+## 網站特色
+
+- **預設汽車資料即開即看**：首次開啟會直接載入預先計算的分析結果（`precomputed/default_analysis.json`），不必等待重新運算。
+- **多種資料匯入方式**：除預設的汽車資料外，Problem 1 可使用本機 `data/data.csv`、上傳 CSV 檔案，或輸入公開 CSV 網址；Problem 2 可使用公開 CSV 網址、上傳 CSV 檔案，或 Startup 50 範例資料。
+- **兩個 Problem 可切換比較**：頁面上方可切換 Problem 1 與 Problem 2。兩者的資料來源、目標變數、特徵與參數各自獨立保存，方便對照不同資料集的分析結果。
+- **完整分析流程**：資料理解、資料準備、五種特徵選擇方法比較、模型評估、95% 預測區間、迴歸假設檢驗與部署預測，依 CRISP-DM 流程分頁呈現。
+- **可重現的前處理**：所有前處理都包在 sklearn Pipeline 中，且只在訓練集上擬合，避免資料洩漏。
+- **報告與下載**：可下載六份 CSV、Markdown 完整報告與 PNG 圖表。
+- **AI 輔助與研究摘要**：分頁內說明 GPT 輔助內容，並提供 NotebookLM 摘要與研究紀錄範本。
 
 ## 功能說明
 
