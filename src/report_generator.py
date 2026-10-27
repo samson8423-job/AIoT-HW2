@@ -226,6 +226,10 @@ def build_markdown_report(
         add("")
         add(ai_content.NOTEBOOKLM_DRAFT_TEXT)
         add("")
+        add("參考來源：")
+        for name, kind, url in ai_content.RESEARCH_SOURCES:
+            add(f"- {name}（{kind}）：{url}")
+        add("")
 
     add("## 11. 研究限制與結論")
     add("")

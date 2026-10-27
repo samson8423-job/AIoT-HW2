@@ -19,6 +19,7 @@ from .evaluation import comparison_table, regression_metrics
 from .feature_selection import (
     METHOD_DESCRIPTIONS,
     METHOD_LASSO,
+    METHOD_RFE,
     METHODS,
     selected_feature_names,
     selection_detail,
@@ -128,7 +129,7 @@ def run_full_analysis(
     comparison_df = comparison_table(method_results)
 
     # 最終模型
-    final_method = settings.get("final_method", METHODS[1])
+    final_method = settings.get("final_method", METHOD_RFE)
     final_entry = next((m for m in valid if m["method"] == final_method), valid[0])
     final_pipe = final_entry["pipeline"]
 

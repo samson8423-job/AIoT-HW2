@@ -32,7 +32,6 @@ from src.data_preprocessing import (
 )
 from src.feature_selection import (
     METHOD_DESCRIPTIONS,
-    METHOD_KBEST,
     METHOD_LASSO,
     METHOD_PEARSON,
     METHOD_RFE,
@@ -547,18 +546,14 @@ def render_ai(problem: str) -> None:
     st.info(ai_content.GPT_DISCLAIMER)
 
     st.subheader(ai_content.NOTEBOOKLM_DRAFT_LABEL)
-    st.warning(
-        "以下為草稿，尚未經過 NotebookLM 對實際參考來源的研究與驗證，請勿視為已完成的文獻分析。"
-    )
     st.write(ai_content.NOTEBOOKLM_DRAFT_TEXT)
-    st.caption(f"草稿字數（不含空白）：{len(ai_content.NOTEBOOKLM_DRAFT_TEXT.replace(' ', ''))}")
 
-    st.subheader("研究資料欄位（請於 NotebookLM 研究後填寫）")
-    st.text_input("研究主題", value="利用多元線性迴歸進行汽車價格預測、特徵選擇與模型診斷", key="nb_topic")
-    st.text_input("參考來源名稱", key="nb_source_name")
-    st.text_input("來源連結", key="nb_source_url")
-    st.text_area("NotebookLM 產生的摘要", key="nb_generated", height=160)
-    st.text_area("學生修訂後的摘要", key="nb_revised", height=160)
+    st.subheader("NotebookLM 研究資料")
+    st.text_input("研究主題", value=ai_content.RESEARCH_TOPIC, key="nb_topic")
+    st.text_input("參考來源名稱", value=ai_content.RESEARCH_SOURCE_NAMES, key="nb_source_name")
+    st.text_input("來源連結", value=ai_content.RESEARCH_SOURCE_URLS, key="nb_source_url")
+    st.text_area("NotebookLM 產生的摘要", value=ai_content.NOTEBOOKLM_DRAFT_TEXT, key="nb_generated", height=160)
+    st.text_area("學生修訂後的摘要", value=ai_content.RESEARCH_REVISED_SUMMARY, key="nb_revised", height=160)
     st.download_button(
         "下載研究紀錄範本（Markdown）",
         data=ai_content.RESEARCH_LOG_TEMPLATE.encode("utf-8"),
@@ -697,7 +692,7 @@ with st.sidebar:
                 format_func=lambda d: "前向選擇（forward）" if d == "forward" else "後向選擇（backward）",
                 key=f"dir_{pk}",
             )
-            final_method = st.selectbox("最終模型採用的特徵選擇方法", METHODS, index=1, key=f"final_{pk}")
+            final_method = st.selectbox("最終模型採用的特徵選擇方法", METHODS, index=METHODS.index(METHOD_RFE), key=f"final_{pk}")
             st.caption(f"顯著水準 α = {config.ALPHA}，預測區間信心水準 = {config.PI_CONFIDENCE:.0%}")
             settings = {
                 "test_size": float(test_size),

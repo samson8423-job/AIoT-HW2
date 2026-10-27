@@ -22,7 +22,7 @@ from src.analysis_runner import run_full_analysis  # noqa: E402
 from src.chart_builders import data_understanding_charts, model_charts  # noqa: E402
 from src.data_loader import load_local_csv  # noqa: E402
 from src.data_preprocessing import clean_dataset, detect_id_like_columns  # noqa: E402
-from src.feature_selection import METHODS  # noqa: E402
+from src.feature_selection import METHOD_RFE  # noqa: E402
 from src.precomputed import (  # noqa: E402
     SNAPSHOT_PATH,
     file_sha256,
@@ -50,7 +50,7 @@ def main() -> None:
         "cv_folds": int(config.DEFAULT_CV_FOLDS),
         "k": int(config.DEFAULT_K),
         "direction": "forward",
-        "final_method": METHODS[1],
+        "final_method": METHOD_RFE,
         "alpha": config.ALPHA,
     }
 

@@ -1,5 +1,11 @@
 # 多元線性迴歸分析平台
 
+- Demo 連結：<https://asheng-mlr.streamlit.app/>
+- GitHub 連結：<https://github.com/samson8423-job/AIoT-HW2>
+
+![Demo 畫面 1](data/HW2-demo1.png)
+![Demo 畫面 2](data/HW2-demo2.png)
+
 以 Streamlit 建置的多元線性迴歸分析網站，流程遵循 CRISP-DM 六階段，包含兩個 Problem：
 
 - **Problem 1：汽車價格預測**：Kaggle 公開資料集 Car Features and MSRP（CooperUnion/cardataset），預測目標為 MSRP。
@@ -14,7 +20,7 @@
 - 預測區間：以 statsmodels OLS 計算個別新觀測值的 95% 預測區間。
 - 迴歸假設檢驗：線性關係（Rainbow 檢定與殘差圖）、誤差獨立性（Durbin-Watson）、等變異性（Breusch-Pagan）、常態性（Shapiro-Wilk 與 Q-Q Plot）、多重共線性（VIF）。
 - 部署與預測：單筆資料預測值與 95% 預測區間。
-- AI 輔助與研究摘要：GPT 輔助內容說明、NotebookLM 研究紀錄範本（摘要草稿需自行研究驗證）。
+- AI 輔助與研究摘要：GPT 輔助內容說明、NotebookLM 摘要與研究紀錄範本。
 - 報告與下載：六份 CSV、Markdown 完整報告、PNG 圖表。
 
 ## 資料來源
@@ -139,7 +145,7 @@ HW2/
     ├── assumption_tests.py        迴歸假設檢驗
     ├── analysis_runner.py         完整分析流程
     ├── visualization.py           圖表（PNG）
-    ├── ai_content.py              GPT 輔助與 NotebookLM 草稿內容
+    ├── ai_content.py              GPT 輔助與 NotebookLM 摘要內容
     └── report_generator.py        CSV 與 Markdown 報告
 ```
 
@@ -150,5 +156,5 @@ HW2/
 - 類別變數的類別數超過 30 時，只保留前 30 個類別，其餘歸為稀少類別。
 - Startup 50 原始只有 4 個輸入欄位，轉換後約 5 個特徵，少於作業要求的 10 個有效特徵，平台會明確提示。
 - Streamlit Community Cloud 上的中文字型顯示效果尚未在雲端環境實際驗證。
-- 「NotebookLM 摘要草稿」僅為待研究驗證的草稿，尚未對實際參考來源進行研究，不可直接作為文獻結論。
+- 「NotebookLM 摘要」為對參考來源的整理，引用前請對照原始來源，不可直接作為文獻結論。
 - 線性模型只能捕捉線性關係，相關性不代表因果關係。
